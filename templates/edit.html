@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form method="POST" action="{{url_for('show', id=current_user.id)}}?_method=PATCH">
+      {{ form.csrf_token }}
+  <p>
+    {{ form.username(placeholder="username", value=user.username) }}
+    <span class="text-danger">
+      {% if form.username.errors %}
+        {% for error in form.username.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+  <p>
+    {{ form.password(placeholder="password", value=user.password) }}
+    <span class="text-danger">
+      {% if form.password.errors %}
+        {% for error in form.password.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <button class="btn btn-success" type="submit">Edit user!</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Welcome back {{current_user.username}}!</h1>
+<a href="{{url_for('edit', id=current_user.id)}}">Edit your profile</a>
+{% endblock %}
