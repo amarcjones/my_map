@@ -1,13 +1,12 @@
-from flask import Flask, render_template, request, url_for, redirect, jsonify
+from flask import Flask, render_template, request, url_for, redirect, jsonify, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-
 from forms import UserForm
-# from models import User
 
 from sqlalchemy.exc import IntegrityError
 # from sqlalchemy import func
 # import os
+
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -17,28 +16,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'super secret'
 db = SQLAlchemy(app)
 
+# Timing matters - the User class, can't be imported from models.py before that file has access to db and bcrypt from this file.
+from models import User
 
 # Class(es) ------------------------------
-# These are in the models.py
-class User(db.Model):
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text, unique=True)
-    password = db.Column(db.Text)
-
-    def __init__(self, username, password):
-        self.username = username
-        self.password = bcrypt.generate_password_hash(password).decode('UTF-8')
-
-    @classmethod
-    def authenticate(cls, username, password):
-        found_user = cls.query.filter_by(username = username).first()
-        if found_user:
-            authenticated_user = bcrypt.check_password_hash(found_user.password, password)
-            if authenticated_user:
-                return found_user # make sure to return the user so we can log them in by storing information in the session
-        return False
+# Moved classes to models.py
 
 
 # Routes ------------------------------
@@ -51,7 +33,8 @@ def signup():
             db.session.add(new_user)
             db.session.commit()
         except IntegrityError as e:
-            return render_template('signup.html', form=form)
+        	flash("Invalid submission.  Please try again.")
+        	return render_template('signup.html', form=form)
         return redirect(url_for('users.login'))
     return render_template('signup.html', form=form)
 
@@ -60,8 +43,12 @@ def signup():
 def login():
     form = UserForm(request.form)
     if request.method == "POST" and form.validate():
-        if User.authenticate(form.data['username'], form.data['password']):
-            return redirect(url_for('welcome'))
+        user = User.authenticate(form.data['username'], form.data['password'])
+        if user:
+                session['user_id'] = user.id
+                flash("You've successfully logged in!")
+                return redirect(url_for('users.welcome'))
+        flash("Invalid credentials. Please try again.")
     return render_template('login.html', form=form)
 
 
