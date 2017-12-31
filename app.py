@@ -49,14 +49,31 @@ class User(db.Model, UserMixin):
         self.username = username
         self.password = bcrypt.generate_password_hash(password).decode('UTF-8')
 
-    # @classmethod
-    # def authenticate(cls, username, password):
-    #     found_user = cls.query.filter_by(username = username).first()
-    #     if found_user:
-    #         authenticated_user = bcrypt.check_password_hash(found_user.password, password)
-    #         if authenticated_user:
-    #             return found_user 
-    #     return False
+
+class Location(db.Model):
+    __tablename__ = 'locations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    addr = db.Column(db.Text)
+    icon = db.Column(db.Text)
+    ph_domestic = db.Column(db.Text)
+    ph_intl = db.Column(db.Text)
+    website = db.Column(db.Text)
+    lat = db.Column(db.Numeric(12,7))
+    lng = db.Column(db.Numeric(12,7))
+
+    def __init__(self, name, addr, icon, ph_domestic, ph_intl, website, lat, lng):
+        self.name
+        self.addr
+        self.icon
+        self.ph_domestic
+        self.ph_intl
+        self.website
+        self.lat
+        self.lng
+
+
 
 # Routes ------------------------------
 @app.route('/')
