@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, jsonify, flash
+from flask import Flask, render_template, request, url_for, redirect, jsonify, json, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_modus import Modus
 from flask_bcrypt import Bcrypt
@@ -154,6 +154,40 @@ def logout():
     # session.pop('user_id') replaced by logout_user()
     logout_user()
     return redirect(url_for('login'))
+
+
+@app.route('/map')
+def map():
+    marked_locations = Location.query.all()
+    locObj = {}
+    locArr = []
+    for location in marked_locations:
+        locObj["lat"] = location.lat,
+        locObj["lng"] = location.lng
+        locArr.append(locObj)
+        print(locArr)
+    return render_template('map.html', marked_locations=marked_locations)
+
+
+@app.route('/new')
+def new():
+    centered = Location.query.get(1)
+    marked_locations = Location.query.all()
+    return render_template('new.html', centered=centered, marked_locations=marked_locations)
+
+@app.route('/addLocation', methods=["GET", "POST"])
+def addLoc():
+    # centered = Location.query.get(1)
+    # testing = request.form['name']
+    # print(testing)
+    if request.method == 'POST':
+        test = str(request.form['latitude'])
+        print(test)
+        # print(request.json['name'])        
+        # print("test worked")
+    return "Yes"
+    # return render_template('new.html', centered=centered)
+
 
 
 # Environment (Production or Development) ------------------------------

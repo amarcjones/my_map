@@ -2,14 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Authentication App</title>
+    <title>My Map</title>
+    <link rel="stylesheet" type="text/css" href="static/css/mapstyle.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+	<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+	<!-- <script src="static/js/map.js"></script> -->
 </head>
 <body>
+
 	{% for message in get_flashed_messages() %}
 	    {{ message }}
 	{% endfor %}  
     
     {% block content %}  
     {% endblock %}
+
 </body>
 </html>

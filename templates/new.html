@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <div id="map"></div>
+
+    <script>
+
+      var arrOfMarkers = []
+      var places = {};
+      
+      function initAutocomplete() {
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: {{ centered.lat }}, lng: {{ centered.lng }} },
+          zoom: 13,
+          mapTypeId: 'roadmap'
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+
+      for(var i = 0; i < arrOfMarkers.length; i++) {
+        addMarker(arrOfMarkers[i])
+      }
+
+      function addMarker(coords) {
+        var marker = new google.maps.Marker({
+          position: coords,
+          map: map,
+          icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+        });
+      }
+
+
+
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          places = searchBox.getPlaces();
+          // console.log(places[0])
+          // name = places[0].name
+          // console.log("name:",places[0].name)
+          // console.log("address:",places[0].formatted_address)
+          // console.log("icon:",places[0].icon)
+          // console.log("ph_domestic:",places[0].formatted_phone_number)
+          // console.log("ph_intl:",places[0].international_phone_number)
+          // console.log("website:",places[0].website)
+          // console.log("latitude:",places[0].geometry.location.lat())
+          // console.log("longitude:",places[0].geometry.location.lng())
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+      }
+    </script>
+
+{% for location in marked_locations %}
+  <!-- crete a js array of marked locations from python list -->
+  <script>
+    var latitude = {{ location.lat }};
+    var longitude = {{ location.lng }}
+    var coords = {lat: latitude, lng: longitude}
+    arrOfMarkers.push(coords)
+    // console.log(arrOfMarkers);
+  </script>
+{% endfor %}
+
+    <form action="">
+      <!-- <input type="text" name="tester"> -->
+      <input id="addBtn" type="button" class="btn btn-info" value="Add Location"/>
+    </form> 
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAupcjCtFw-x5bW2TuKSC6rsBFbmhcGCaA&libraries=places&callback=initAutocomplete"
+         async defer></script>
+
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <div id="map"></div>
+
+{% for location in marked_locations %}
+
+    <script>
+    	var default_latitude = {{ marked_locations[0].lat}};
+    	var default_longitude = {{ marked_locations[0].lng}};
+
+    	var latitude = {{ location.lat }};
+    	// console.log(latitude);
+    	var longitude = {{ location.lng }}
+    	// console.log(longitude);
+    	var coords = {lat: latitude, lng: longitude}
+    	console.log(coords);
+    	// console.log(default_latitude);
+    	// console.log(default_longitude);
+
+	// function addMarker(coords) {
+
+	// 	var marker = new google.maps.Marker({
+	// 		position: coords,
+	// 		map: map,
+	// 		icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+	// 	});
+
+	// }
+
+      function initAutocomplete() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: default_latitude, lng: default_longitude},
+          // center: {lat: -33.8688, lng: 151.2195},
+          zoom: 13,
+          mapTypeId: 'roadmap'
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+
+        // This addListener is activated only when searchbox input changes
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+      }
+    </script>
+
+<script>
+	function addMarker(coords) {
+
+		var marker = new google.maps.Marker({
+			position: coords,
+			map: map,
+			icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+		});
+
+	}
+</script>
+
+{% endfor %}
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAupcjCtFw-x5bW2TuKSC6rsBFbmhcGCaA&libraries=places&callback=initAutocomplete"
+         async defer></script>
+  </body>
+
+{% endblock %}
