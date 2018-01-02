@@ -64,17 +64,36 @@ class Location(db.Model):
     lng = db.Column(db.Numeric(12,7))
 
     def __init__(self, name, addr, icon, ph_domestic, ph_intl, website, lat, lng):
-        self.name
-        self.addr
-        self.icon
-        self.ph_domestic
-        self.ph_intl
-        self.website
-        self.lat
-        self.lng
+        self.name = name
+        self.addr = addr
+        self.icon = icon
+        self.ph_domestic = ph_domestic
+        self.ph_intl = ph_intl
+        self.website = website
+        self.lat = lat
+        self.lng = lng
 
     def __repr__(self):
         return "{} location ".format(self.name)
+
+
+# class Computer(db.Model):
+#     __tablename__ = "computers" # table name will default to name of the model
+
+#     # Create the three columns for our table
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.Text)
+#     memory_in_gb = db.Column(db.Integer)
+
+#     # define what each instance or row in the DB will have (id is taken care of for you)
+#     def __init__(self, name, memory_in_gb):
+#         self.name = name
+#         self.memory_in_gb = memory_in_gb
+
+#     # this is not essential, but a valuable method to overwrite as this is what we will see when we print out an instance in a REPL.
+#     def __repr__(self):
+#         return "This {} has {} GB of memory".format(self.name, self.memory_in_gb)    
+
 
 # Routes ------------------------------
 @app.route('/')
@@ -192,12 +211,12 @@ def addLoc():
         lat = float(request.form['latitude'])
         lng = float(request.form['longitude'])
 
-        print(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
+        # print(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
 
         newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
-        print(newLocation)
-        # db.session.add(newLocation)
-        # db.session.commit()
+        # print(newLocation)
+        db.session.add(newLocation)
+        db.session.commit()
 
         # test = str(request.form['latitude'])
         # print(test)
