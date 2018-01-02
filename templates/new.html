@@ -49,16 +49,6 @@
         // more details for that place.
         searchBox.addListener('places_changed', function() {
           places = searchBox.getPlaces();
-          // console.log(places[0])
-          // name = places[0].name
-          // console.log("name:",places[0].name)
-          // console.log("address:",places[0].formatted_address)
-          // console.log("icon:",places[0].icon)
-          // console.log("ph_domestic:",places[0].formatted_phone_number)
-          // console.log("ph_intl:",places[0].international_phone_number)
-          // console.log("website:",places[0].website)
-          // console.log("latitude:",places[0].geometry.location.lat())
-          // console.log("longitude:",places[0].geometry.location.lng())
 
           if (places.length == 0) {
             return;

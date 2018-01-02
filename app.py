@@ -73,7 +73,8 @@ class Location(db.Model):
         self.lat
         self.lng
 
-
+    def __repr__(self):
+        return "{} location ".format(self.name)
 
 # Routes ------------------------------
 @app.route('/')
@@ -181,10 +182,26 @@ def addLoc():
     # testing = request.form['name']
     # print(testing)
     if request.method == 'POST':
-        test = str(request.form['latitude'])
-        print(test)
-        # print(request.json['name'])        
-        # print("test worked")
+        # print(request.form['name'])
+        name = str(request.form['name'])
+        addr = str(request.form['formatted_address'])
+        icon = str(request.form['icon'])
+        ph_domestic = str(request.form['ph_domestic'])
+        ph_intl = str(request.form['ph_intl'])
+        website = str(request.form['website'])
+        lat = float(request.form['latitude'])
+        lng = float(request.form['longitude'])
+
+        print(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
+
+        newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
+        print(newLocation)
+        # db.session.add(newLocation)
+        # db.session.commit()
+
+        # test = str(request.form['latitude'])
+        # print(test)
+        
     return "Yes"
     # return render_template('new.html', centered=centered)
 
