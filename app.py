@@ -20,6 +20,7 @@ db = SQLAlchemy(app)
 
 
 login_manager.login_view = "login"
+# login_manager.login_message = "Please log in!"
 
 @login_manager.user_loader
 def load_user(id):
@@ -38,12 +39,24 @@ def ensure_correct_user(fn):
 
 # Class(es) ------------------------------
 # Moved classes to models.py
+# spots = db.Table('spots',
+#     db.Column('user_id', db.Integer, db.ForeignKey('users.user_id')),
+#     db.Column('loc_id', db.Integer, db.ForeignKey('locations.loc_id'))
+# )
+
+spots = db.Table('spots',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+    db.Column('loc_id', db.Integer, db.ForeignKey('locations.id'))
+)
+
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
+    visits = db.relationship('Location', secondary=spots, backref=db.backref('visitors', lazy='dynamic'))
 
     def __init__(self, username, password):
         self.username = username
@@ -63,6 +76,7 @@ class Location(db.Model):
     lat = db.Column(db.Numeric(12,7))
     lng = db.Column(db.Numeric(12,7))
 
+
     def __init__(self, name, addr, icon, ph_domestic, ph_intl, website, lat, lng):
         self.name = name
         self.addr = addr
@@ -75,6 +89,7 @@ class Location(db.Model):
 
     def __repr__(self):
         return "{} location ".format(self.name)
+
 
 
 # class Computer(db.Model):
@@ -102,8 +117,9 @@ def home():
     return render_template('home.html')
 
 
-app.route('/signup', methods =["GET", "POST"])
+@app.route('/signup', methods =["GET", "POST"])
 def signup():
+    # print("test")
     form = UserForm(request.form)
     if form.validate():
         try:
@@ -191,15 +207,15 @@ def map():
 
 @app.route('/new')
 def new():
+
     centered = Location.query.get(1)
     marked_locations = Location.query.all()
     return render_template('new.html', centered=centered, marked_locations=marked_locations)
 
 @app.route('/addLocation', methods=["GET", "POST"])
 def addLoc():
-    # centered = Location.query.get(1)
-    # testing = request.form['name']
-    # print(testing)
+
+
     if request.method == 'POST':
         # print(request.form['name'])
         name = str(request.form['name'])
@@ -211,15 +227,9 @@ def addLoc():
         lat = float(request.form['latitude'])
         lng = float(request.form['longitude'])
 
-        # print(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
-
         newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
-        # print(newLocation)
         db.session.add(newLocation)
         db.session.commit()
-
-        # test = str(request.form['latitude'])
-        # print(test)
         
     return "Yes"
     # return render_template('new.html', centered=centered)
