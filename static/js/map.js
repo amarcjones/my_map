@@ -10,10 +10,10 @@ $(function(){
         // var website = places[0].website
         // var latitude = places[0].geometry.location.lat()
         // var longitude = places[0].geometry.location.lng()
-
+        // console.log({{ id }})
 
       	$.ajax({
-			url: '/addLocation',
+			url: '/' + id_current_user + '/addLocation',
 			// places is from Search Box
 			data: { 
 				name: places[0].name,

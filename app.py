@@ -30,6 +30,7 @@ def load_user(id):
 def ensure_correct_user(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        # print(current_user.id)
         if kwargs.get('id') != current_user.id:
             flash("Not Authorized")
             return redirect(url_for('home'))
@@ -192,44 +193,59 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/map')
-def map():
-    marked_locations = Location.query.all()
-    locObj = {}
-    locArr = []
-    for location in marked_locations:
-        locObj["lat"] = location.lat,
-        locObj["lng"] = location.lng
-        locArr.append(locObj)
-        print(locArr)
-    return render_template('map.html', marked_locations=marked_locations)
+# @app.route('/map')
+# def map():
+#     marked_locations = Location.query.all()
+#     locObj = {}
+#     locArr = []
+#     for location in marked_locations:
+#         locObj["lat"] = location.lat,
+#         locObj["lng"] = location.lng
+#         locArr.append(locObj)
+#         print(locArr)
+#     return render_template('map.html', marked_locations=marked_locations)
 
 
 @app.route('/new')
+# @login_required
+# @ensure_correct_user
 def new():
-
     centered = Location.query.get(1)
     marked_locations = Location.query.all()
-    return render_template('new.html', centered=centered, marked_locations=marked_locations)
+    # print(current_user.id) 
+    return render_template('new.html', centered=centered, marked_locations=marked_locations, id=current_user.id)
 
-@app.route('/addLocation', methods=["GET", "POST"])
-def addLoc():
+@app.route('/<int:id>/addLocation', methods=["GET", "POST"])
+@login_required
+@ensure_correct_user
+def addLoc(id):
 
 
     if request.method == 'POST':
         # print(request.form['name'])
-        name = str(request.form['name'])
-        addr = str(request.form['formatted_address'])
-        icon = str(request.form['icon'])
-        ph_domestic = str(request.form['ph_domestic'])
-        ph_intl = str(request.form['ph_intl'])
-        website = str(request.form['website'])
+        all_locations = Location.query.all() 
+        # name = str(request.form['name'])
+        # addr = str(request.form['formatted_address'])
+        # icon = str(request.form['icon'])
+        # ph_domestic = str(request.form['ph_domestic'])
+        # ph_intl = str(request.form['ph_intl'])
+        # website = str(request.form['website'])
         lat = float(request.form['latitude'])
         lng = float(request.form['longitude'])
 
-        newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
-        db.session.add(newLocation)
-        db.session.commit()
+        for loc in all_locations:
+            if float(loc.lat) == lat and float(loc.lng) == lng:
+                # print("types and values match")
+                match = True
+                match_id = loc.id
+
+        if match == True: 
+            print("location id:", match_id)
+            print("user id", current_user.id)
+                # newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
+                # db.session.add(newLocation)
+                # db.session.commit()
+
         
     return "Yes"
     # return render_template('new.html', centered=centered)
