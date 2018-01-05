@@ -58,12 +58,16 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, unique=True)
     password = db.Column(db.Text)
-    visits = db.relationship('Location', secondary=spots, backref=db.backref('visitors', lazy='joined'))
+    # visits = db.relationship('Location', secondary=spots, backref=db.backref('visitors', lazy='dynamic'))
+    locations = db.relationship('Location', secondary=spots, 
+                                    backref=db.backref('locations', lazy='dynamic'))
 
     def __init__(self, username, password):
         self.username = username
         self.password = bcrypt.generate_password_hash(password).decode('UTF-8')
 
+    def __repr__(self):
+        return "{} location ".format(self.username)
 
 class Location(db.Model):
     __tablename__ = 'locations'
@@ -77,6 +81,8 @@ class Location(db.Model):
     website = db.Column(db.Text)
     lat = db.Column(db.Numeric(12,7))
     lng = db.Column(db.Numeric(12,7))
+    users = db.relationship('User', secondary=spots,
+                                    backref=db.backref('users', lazy='dynamic'))
 
 
     def __init__(self, name, addr, icon, ph_domestic, ph_intl, website, lat, lng):
@@ -194,27 +200,26 @@ def logout():
     return redirect(url_for('login'))
 
 
-# @app.route('/map')
-# def map():
-#     marked_locations = Location.query.all()
-#     locObj = {}
-#     locArr = []
-#     for location in marked_locations:
-#         locObj["lat"] = location.lat,
-#         locObj["lng"] = location.lng
-#         locArr.append(locObj)
-#         print(locArr)
-#     return render_template('map.html', marked_locations=marked_locations)
-
-
-@app.route('/new')
-# @login_required
-# @ensure_correct_user
-def new():
+@app.route('/map')
+def map():
     centered = Location.query.get(1)
-    marked_locations = Location.query.all()
-    # print(current_user.id) 
-    return render_template('new.html', centered=centered, marked_locations=marked_locations, id=current_user.id)
+
+    # Change hard-coded value to dynamic value passed in from route id (i.e. add/Location route)
+    marked_locations = User.query.get(2).users
+    # marked_locations = Location.query.all()
+
+    return render_template('map.html', centered=centered, marked_locations=marked_locations, id=current_user.id)
+
+
+# @app.route('/new')
+# # @login_required
+# # @ensure_correct_user
+# def new():
+#     centered = Location.query.get(1)
+#     marked_locations = User.query.get(1).users
+#     # marked_locations = Location.query.all()
+#     return render_template('new.html', centered=centered, marked_locations=marked_locations, id=current_user.id)
+
 
 @app.route('/<int:id>/addLocation', methods=["GET", "POST"])
 @login_required
@@ -228,12 +233,25 @@ def addLoc(id):
 
         # #  Even though they aren't actually shown on a form, you can use the request.form function to get response values shown in the Network tab/ Headers / Form Data section.
         # #  **NOTE:  In this case, the request.form function is returning the value(s) provided by the  Google Maps API response.  As a result, numeric values may have a higher precision (aka more decimal places) than values stored in the database.  This is an important consideration when comparing  request.form["values"] and the value stored in the database, for the same location.  
+        # #  **ALSO:  Pay attention to the use of request.form[] and request.form.get() - form uses square brackets and form.get use parentheses.  Using both here the handle cases that may result in None.
         name = request.form['name']
         addr = request.form['formatted_address']
         icon = request.form['icon']
-        ph_domestic = request.form['ph_domestic']
-        ph_intl = request.form['ph_intl']
-        website = request.form['website']
+        # ph_domestic None handling
+        if request.form.get('ph_domestic') == None:
+            ph_domestic = "null"
+        else:
+            ph_domestic = request.form['ph_domestic']
+        # ph_intl None handling
+        if request.form.get('ph_intl') == None:
+            ph_intl = "null"
+        else:
+            ph_intl = request.form['ph_intl']
+        # website None handling
+        if request.form.get('website') == None:
+            website = "null"
+        else:
+            website = request.form['website']
 
         # Convert these decimal values to a precision of 7 
         lat = format(float(request.form['latitude']),'.7f')
@@ -258,23 +276,10 @@ def addLoc(id):
         # add row to association table 
         user_assoc = User.query.get(current_user.id)
         location_assoc = Location.query.get(match_id)
-        location_assoc.visitors.append(user_assoc)
+        location_assoc.users.append(user_assoc)
         db.session.commit()
-
         
         # for now I am going to assume a user will not be enter a specific lat/lng more than once
-
-        
-
-        # if match == True: 
-        #     print("location id:", match_id)
-        #     print("user id", current_user.id)
-        #         # newLocation = Location(name, addr, icon, ph_domestic, ph_intl, website, lat, lng)
-        #         # db.session.add(newLocation)
-        #         # db.session.commit()
-        #     user_assoc = User.query.get(current_user.id)
-        #     location_assoc = Location.query.get(match_id)
-        #     location_assoc.visitors.append(user_assoc)
 
     return "Yes"
     # return render_template('new.html', centered=centered)
