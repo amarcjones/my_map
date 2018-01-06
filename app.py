@@ -38,12 +38,8 @@ def ensure_correct_user(fn):
     return wrapper
 
 
-# Class(es) ------------------------------
-# Moved classes to models.py
-# spots = db.Table('spots',
-#     db.Column('user_id', db.Integer, db.ForeignKey('users.user_id')),
-#     db.Column('loc_id', db.Integer, db.ForeignKey('locations.loc_id'))
-# )
+# Class(es) and Table ------------------------------
+# Refactor at some point and move classes to models.py
 
 spots = db.Table('spots',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
@@ -99,25 +95,6 @@ class Location(db.Model):
         return "{} location ".format(self.name)
 
 
-
-# class Computer(db.Model):
-#     __tablename__ = "computers" # table name will default to name of the model
-
-#     # Create the three columns for our table
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.Text)
-#     memory_in_gb = db.Column(db.Integer)
-
-#     # define what each instance or row in the DB will have (id is taken care of for you)
-#     def __init__(self, name, memory_in_gb):
-#         self.name = name
-#         self.memory_in_gb = memory_in_gb
-
-#     # this is not essential, but a valuable method to overwrite as this is what we will see when we print out an instance in a REPL.
-#     def __repr__(self):
-#         return "This {} has {} GB of memory".format(self.name, self.memory_in_gb)    
-
-
 # Routes ------------------------------
 @app.route('/')
 @login_required
@@ -127,7 +104,6 @@ def home():
 
 @app.route('/signup', methods =["GET", "POST"])
 def signup():
-    # print("test")
     form = UserForm(request.form)
     if form.validate():
         try:
@@ -201,18 +177,19 @@ def logout():
 
 
 @app.route('/map')
+@login_required
+# @ensure_correct_user
 def map():
-    centered = Location.query.get(1)
 
-    # Change hard-coded value to dynamic value passed in from route id (i.e. add/Location route)
-    marked_locations = User.query.get(2).users
-    # marked_locations = Location.query.all()
+    centered = Location.query.get(1)
+    # Code to use current_user.id and many-to-many reltionship to create list of marked_locations for a specific user.
+    marked_locations = User.query.get(current_user.id).users
 
     return render_template('map.html', centered=centered, marked_locations=marked_locations, id=current_user.id)
 
 
 # @app.route('/new')
-# # @login_required
+# @login_required
 # # @ensure_correct_user
 # def new():
 #     centered = Location.query.get(1)
@@ -225,7 +202,6 @@ def map():
 @login_required
 @ensure_correct_user
 def addLoc(id):
-
 
     if request.method == 'POST':
 
@@ -278,8 +254,10 @@ def addLoc(id):
         location_assoc = Location.query.get(match_id)
         location_assoc.users.append(user_assoc)
         db.session.commit()
+
+        redirect(url_for('map'))
         
-        # for now I am going to assume a user will not be enter a specific lat/lng more than once
+        # for now I am going to assume a user will not be entering a specific lat/lng more than once
 
     return "Yes"
     # return render_template('new.html', centered=centered)

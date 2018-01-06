@@ -19,6 +19,9 @@ $(function(){
 			success: function(response){
 				console.log(response)
 				console.log("yes from ajax"); // more simple
+				alert("Location added!!!")
+				// url: '/map'
+				// initAutocomplete()
 			},
 			error: function(error){
 				console.log(error);

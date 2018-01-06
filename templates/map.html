@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  
+
+
+<!-- Map code   -->
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <div id="map"></div>
 
@@ -13,38 +15,45 @@
     </script>
 
     <script>
-      function initAutocomplete() {
-
-        var map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: {{ centered.lat }}, lng: {{ centered.lng }} },
-          zoom: 4,
-          mapTypeId: 'roadmap'
-        });
-
-        // Create the search box and link it to the UI element.
-        var input = document.getElementById('pac-input');
-        var searchBox = new google.maps.places.SearchBox(input);
-        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
-        // Bias the SearchBox results towards current map's viewport.
-        map.addListener('bounds_changed', function() {
-          searchBox.setBounds(map.getBounds());
-        });
+        function initAutocomplete() {
+            // Instantiate a new map 
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 39.8097343, lng: -98.5556199 },
+                zoom: 4,
+                mapTypeId: 'roadmap'
+            });
+            // Create the search box and link it to the UI element.
+            var input = document.getElementById('pac-input');
+            var searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+            // Bias the SearchBox results towards current map's viewport.
+            map.addListener('bounds_changed', function() {
+              searchBox.setBounds(map.getBounds());
+            });
 
 
-      for(var i = 0; i < arrOfMarkers.length; i++) {
-        addMarker(arrOfMarkers[i])
-      }
+            for(var i = 0; i < arrOfMarkers.length; i++) {
+                addMarker(arrOfMarkers[i])
+            }
 
-      function addMarker(coords, icon) {
-        var marker = new google.maps.Marker({
-          position: coords,
-          map: map,
-          icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
-        });
-      }
-
-
+            function addMarker(props) {
+                // Instantiate a new marker
+                var marker = new google.maps.Marker({
+                    position: props.coords,
+                    map: map,
+                    // icon: props.icon
+                    icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'
+                });
+                
+                // Create infoWindow 
+                var infoWindow = new google.maps.InfoWindow({
+                  content: props.content
+                })
+                // Add event listener to display infoWindo content with marker is clicked.
+                marker.addListener('click', function(){
+                  infoWindow.open(map, marker);
+                })
+            }
 
 
         var markers = [];
@@ -57,25 +66,18 @@
             return;
           }
 
-          // For each place, get the icon, name and location.
+          // Using the location selected in the search box, set the bounds of the map.
           var bounds = new google.maps.LatLngBounds();
           places.forEach(function(place) {
             if (!place.geometry) {
               console.log("Returned place contains no geometry");
               return;
             }
-            var icon = {
-              url: place.icon,
-              size: new google.maps.Size(71, 71),
-              origin: new google.maps.Point(0, 0),
-              anchor: new google.maps.Point(17, 34),
-              scaledSize: new google.maps.Size(25, 25)
-            };
 
             // Create a marker for each place.
             markers.push(new google.maps.Marker({
               map: map,
-              icon: icon,
+              icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
               title: place.name,
               position: place.geometry.location
             }));
@@ -89,27 +91,41 @@
           });
           map.fitBounds(bounds);
         });
+
       }
     </script>
 
 {% for location in marked_locations %}
   <!-- crete a js array of marked locations from python list -->
   <script>
+    var arrObj = {}
     var latitude = {{ location.lat }};
     var longitude = {{ location.lng }};
     var coords = {lat: latitude, lng: longitude};
-    arrOfMarkers.push(coords);
-    // var icon =  ({{ location.icon }}).toString();
+    var icon = "{{ location.icon }}"
+    var content = "{{ location.name }}"
+    arrObj['coords'] = coords;
+    arrObj['icon'] = icon;
+    arrObj['content'] = content;
+
+    arrOfMarkers.push(arrObj);
+    // console.log("{{ location.name }}");
     // arrOfIcons.push(icon);
 
-    // console.log(arrOfIcons);
+
   </script>
+
 {% endfor %}
 
+
     <form action="">
-      <!-- <input type="text" name="tester"> -->
       <input id="addBtn" type="button" class="btn btn-info" value="Add Location"/>
     </form> 
+
+
+<form action="">
+  
+</form>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAupcjCtFw-x5bW2TuKSC6rsBFbmhcGCaA&libraries=places&callback=initAutocomplete"
          async defer></script>
